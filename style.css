@@ -1,0 +1,31 @@
+#chart_div {
+    background-image: url('chart_background_analiz.jpg');
+    background-size: contain;
+}
+
+.rectChart {
+    fill: whitesmoke;
+}
+
+.axisLine {
+    stroke: #333;
+    stroke-width: 3px;
+}
+
+.gridLine {
+    stroke: #333;
+    stroke-width: 1px;
+}
+
+#groupAxisY .axisLine {
+    stroke-width: 1px;
+}
+
+.rectLabel {
+    stroke: #333;
+    stroke-width: 1px;
+    fill-opacity: 0;
+}
+/* .gridLabel {
+    font-size: 24px;
+} */
