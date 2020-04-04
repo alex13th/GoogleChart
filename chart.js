@@ -65,7 +65,7 @@ function drawHGrid(options) {
             null, 
             x, 
             y - step  + (step * .1),
-            'translate(' + (3 * zoom) + ')', 
+            'translate(' + (options.hGrid.labelOffset * zoom) + ')', 
             options.hGrid.labelClassName, 
             labelFontSize);
     
@@ -176,15 +176,13 @@ function drawGrid(options) {
 function drawChart(chartDiv, data, options) {
     if(!isValue(options)) {
         options = {
-            height: 1300,
-            width: 1200,
-            zoom: 20,
-            topPadding: 12,
-            leftPadding: 4,
+            height: 600,
+            width: 650,
+            zoom: 4,
+            topPadding: 60,
+            leftPadding: 20,
             chartArea: {
                 className: 'rectChart',
-                height: 60,
-                width: 55
             },
             hAxis: {
                 className: 'axisLine',
@@ -199,34 +197,39 @@ function drawChart(chartDiv, data, options) {
             hGrid: {
                 className: 'gridLine',
                 width: 1,
-                step: 2,
+                step: 10,
                 count: 21,
                 offset: 0,
                 labelClassName: 'gridLabel',
-                labelFontSize: 1,
+                labelFontSize: 5,
+                labelOffset: 15, // Подумать о замене на расчетный от leftPadding
                 labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
                         '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100']
             },
             vGrid: {
                 className: 'gridLine',
                 width: 1,
-                step: 6,
+                step: 30,
                 count: 10,
-                offset: 3,
-                labelHeight: 4,
+                offset: 15,
+                labelHeight: 20,
                 labelClassName: 'rectLabel',
-                labelFontSize: 1,
+                labelFontSize: 5,
                 labels: ['A','B','C','D','E','F','G','H','I', 'J']
             }
         }
     }
+
+    var zoom = options.zoom;
+    chartWidth = options.vGrid.step * options.vGrid.count + options.leftPadding;
+    chartHeight = options.hGrid.step * options.hGrid.count + options.topPadding + options.vGrid.labelHeight;
 
     var chartSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
     setAttributeSVG(chartSVG,  'version', '1.1');
     setAttributeSVG(chartSVG,  'width', options.width);
     setAttributeSVG(chartSVG,  'height', options.height);
-    setAttributeSVG(chartSVG,  'viewBox', '0 0 1300 1200');
+    setAttributeSVG(chartSVG,  'viewBox', '0 0 ' + (chartWidth * zoom) + ' '  + (chartHeight * zoom));
 
     var mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     var mainRect = createRect(0, 0, '100%', '100%', options.chartArea.className);
@@ -234,6 +237,19 @@ function drawChart(chartDiv, data, options) {
     mainG.appendChild(mainRect);
 
     mainG.appendChild(drawGrid(options));
+
+    strPath ='M';
+    for(let i = 0; i < data.length; i++) {
+        let x = ((i + options.vAxis.position) * options.vGrid.step + options.leftPadding + options.vGrid.offset) * options.zoom;
+        let y = ((options.hAxis.position * options.hGrid.step - data[i] * options.hGrid.step/(options.hGrid.count - options.hAxis.position - 1) + options.topPadding + options.hGrid.offset)) * options.zoom;
+        strPath = strPath + x + ' ' + y + ' ';
+    }
+
+    var graphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    setAttributeSVG(graphPath, 'd', strPath);
+    setAttributeSVG(graphPath, 'fill-opacity', 0);
+    setAttributeSVG(graphPath, 'stroke', 'black');
+    mainG.appendChild(graphPath);
 
     chartSVG.appendChild(mainG);
     chartDiv.appendChild(chartSVG);

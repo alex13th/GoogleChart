@@ -1,6 +1,5 @@
-#chart_div {
-    background-image: url('chart_background_analiz.jpg');
-    background-size: contain;
+div {
+    padding: 16px;
 }
 
 .rectChart {
@@ -29,3 +28,31 @@
 /* .gridLabel {
     font-size: 24px;
 } */
+
+
+.wrapper {
+    background-color: whitesmoke;
+    list-style-type: none;
+    padding: 0;
+    border-radius: 3px;
+}
+.form-row {
+    display: flex;
+    justify-content: flex-end;
+    padding: .5em;
+}
+.form-row > label {
+    padding: .5em 1em .5em 0;
+}
+.form-row > input {
+    flex: 1;
+}
+.form-row > input,
+.form-row > button {
+    padding: .5em;
+}
+.form-row > button {
+    background: gray;
+    color: white;
+    border: 0;
+}

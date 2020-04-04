@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="chart.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <ul class="wrapper">
+            <li class="form-row">
+                <label for="width" style>Ширина: </label><input id="width" type="text" size="4" value="100%">
+            </li>
+            <li class="form-row">
+                <label for="height">Высота: </label><input id="height" type="text" size="4" value="100%">
+            </li>
+            <li class="form-row">
+                <label for="height">Ширина столбца: </label><input id="gridWidth" type="text" size="4" value="40">
+            </li class="form-row">
+            <li class="form-row">
+                <label for="height">Высота строки: </label><input id="gridHeight" type="text" size="4" value="10">
+            </li>
+            <li class="form-row">
+                <label for="val1">Значения: </label>
+                <input id="val1" type="text" size="3" value="90">
+                <input id="val2" type="text" size="3" value="98">
+                <input id="val3" type="text" size="3" value="-8">
+                <input id="val4" type="text" size="3" value="58">
+                <input id="val5" type="text" size="3" value="97">
+                <input id="val6" type="text" size="3" value="81">
+                <input id="val7" type="text" size="3" value="-58">
+                <input id="val8" type="text" size="3" value="34">
+                <input id="val9" type="text" size="3" value="34">
+                <input id="val10" type="text" size="3" value="22">
+            </li>
+            <li class="form-row">
+                <input type="button" onclick="drawGraph();" value="Построить">
+            </li>
+        </ul>
+    </div>
+    <div id="divChart">
+    </div>
+
+    <script type="text/javascript">
+
+    options = {
+            height: 900,
+            width: 975,
+            zoom: 4,
+            topPadding: 60,
+            leftPadding: 20,
+            chartArea: {
+                className: 'rectChart',
+            },
+            hAxis: {
+                className: 'axisLine',
+                position: 10,
+                labelSize: 1
+            },
+            vAxis: {
+                className: 'gridLine',
+                position: 0,
+                labelSize: 4
+            },
+            hGrid: {
+                className: 'gridLine',
+                width: 1,
+                step: 10,
+                count: 21,
+                offset: 0,
+                labelClassName: 'gridLabel',
+                labelFontSize: 5,
+                labelOffset: 15, // Подумать о замене на расчетный от leftPadding
+                labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
+                        '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100']
+            },
+            vGrid: {
+                className: 'gridLine',
+                width: 1,
+                step: 30,
+                count: 10,
+                offset: 15,
+                labelHeight: 20,
+                labelClassName: 'rectLabel',
+                labelFontSize: 5,
+                labels: ['A','B','C','D','E','F','G','H','I', 'J']
+            }
+        }
+        function drawGraph() {
+            options.width = document.getElementById('width').value;
+            options.height = document.getElementById('height').value;
+            options.vGrid.step = +document.getElementById('gridWidth').value;
+            options.hGrid.step = +document.getElementById('gridHeight').value;
+            options.vGrid.offset = options.vGrid.step / 2;
+            var a = [];
+            for(let i = 1; i <= 10; i++) {
+                a.push(+document.getElementById('val'+i).value);
+            }
+            document.getElementById('divChart').innerText = "";
+            drawChart(document.getElementById('divChart'), a, options);
+        }
+        drawGraph();
+    </script>
+</body>
+</html>
