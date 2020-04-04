@@ -13,7 +13,7 @@
 }
 
 .gridLine {
-    stroke: #333;
+    stroke: #999;
     stroke-width: 1px;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .rectLabel {
-    stroke: #333;
+    stroke: #999;
     stroke-width: 1px;
     fill-opacity: 0;
 }
