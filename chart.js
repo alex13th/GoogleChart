@@ -2,25 +2,41 @@ function isValue(value) {
     return !(value == null || value === undefined)
 }
 
+function applyZoom(zoom, options) {
+    options.topPadding *= zoom;
+    options.leftPadding *= zoom; // Подумать как расчитать от параметров вертикальной оси
+    options.hGrid.step *=  zoom;
+    options.hGrid.offset *= zoom;
+    options.hGrid.dataLabels.style.fontSize *= zoom;
+    options.hGrid.dataLabels.style.offset *= zoom; // Подумать о замене на расчетный от leftPadding
+    options.vGrid.step *= zoom;
+    options.vGrid.offset *= zoom;
+    options.vGrid.dataLabels.style.fontSize *= zoom;
+    options.vGrid.dataLabels.style.offset *= 0;
+    options.vGrid.dataLabels.style.height *= zoom;
+    return options;
+}
+
 function setAttributeSVG(element, attributeName, value) {
     if(isValue(value)){
         element.setAttributeNS(null, attributeName, value);
     }
 }
 
-function createLine(x1, y1, x2, y2, className) {
+function createLine(x1, y1, x2, y2, width, className) {
     var element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     setAttributeSVG(element,'class', className);
     setAttributeSVG(element, 'x1', x1);
     setAttributeSVG(element, 'y1', y1);
     setAttributeSVG(element, 'x2', x2);
     setAttributeSVG(element, 'y2', y2);
+    setAttributeSVG(element, 'stroke-width', width);
     return element;
 }
 
-function createRect(x, y, width, height, className) {
+function createRect(x, y, width, height, style) {
     var element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    setAttributeSVG(element,'class', className);
+    setAttributeSVG(element,'class', style.className);
     setAttributeSVG(element, 'x', x);
     setAttributeSVG(element, 'y', y);
     setAttributeSVG(element, 'width', width);
@@ -28,57 +44,58 @@ function createRect(x, y, width, height, className) {
     return element;
 }
 
-function createText(text, x, y, transform, className, fontSize, textAnchor) {
+function createText(text, x, y, style) {
     var element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    var transform = 'translate(' + (style.offset) + ')'
     element.textContent = text;
-    setAttributeSVG(element, 'font-size', fontSize);
-    setAttributeSVG(element, 'class', className);
+    setAttributeSVG(element, 'font-size', style.fontSize);
+    setAttributeSVG(element, 'class', style.className);
     setAttributeSVG(element, 'x', x);
     setAttributeSVG(element, 'y', y);
-    setAttributeSVG(element, 'text-anchor', textAnchor);
+    setAttributeSVG(element, 'text-anchor', style.anchor);
     setAttributeSVG(element, 'transform', transform);
     return element;
 }
 
-function createTSpan(text, x, y, dx, dy, textAnchor, className) {
+function createTSpan(text, x, y, dx, dy, style) {
     var element = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
     element.textContent = text;
-    setAttributeSVG(element, 'class', className);
+    setAttributeSVG(element, 'class', style.className);
     setAttributeSVG(element, 'x', x);
     setAttributeSVG(element, 'y', y);
     setAttributeSVG(element, 'dx', dx);
     setAttributeSVG(element, 'dy', dy);
-    setAttributeSVG(element, 'text-anchor', textAnchor);
+    setAttributeSVG(element, 'text-anchor', style.anchor);
     return element;
 }
 
 function drawHGrid(options) {
-    var zoom = options.zoom;
-    var x = options.leftPadding * zoom;
-    var y = (options.topPadding + options.hGrid.offset) * zoom;
-    var step = options.hGrid.step * zoom;
-    var gridLength = (options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset) * zoom;
-    var labelFontSize = options.hGrid.labelFontSize * zoom;
+    var gridLength = (options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset);
 
     var axisG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     var axisLabelText = createText(
             null, 
-            x, 
-            y - step  + (step * .1),
-            'translate(' + (options.hGrid.labelOffset * zoom) + ')', 
-            options.hGrid.labelClassName, 
-            labelFontSize);
+            options.leftPadding, 
+            options.topPadding + options.hGrid.offset - options.hGrid.step  + (options.hGrid.step * .1),
+            options.hGrid.dataLabels.style);
     
     for(var i = 0; i < options.hGrid.count; i++) {
         var gridLine = createLine(
-            x, 
-            y + step * i, 
-            x + gridLength, 
-            y + step * i, 
-            options.hGrid.className);
+            options.leftPadding, 
+            options.topPadding + options.hGrid.offset + options.hGrid.step * i, 
+            options.leftPadding + gridLength, 
+            options.topPadding + options.hGrid.offset + options.hGrid.step * i,
+            options.hGrid.style.width,
+            options.hGrid.style.className);
         axisG.appendChild(gridLine);
 
-        var tSpan = createTSpan(options.hGrid.labels[i], 1, null, null, step, 'end');
+        var tSpan = createTSpan(
+            options.hGrid.dataLabels.labels[i], 
+            0, 
+            null, 
+            null, 
+            options.hGrid.step,
+            options.hGrid.dataLabels.style);
         axisLabelText.appendChild(tSpan);
     }
     axisG.appendChild(axisLabelText);
@@ -86,11 +103,10 @@ function drawHGrid(options) {
 }
 
 function drawVGrid(options) { 
-    var zoom = options.zoom;
-    var x = (options.leftPadding + options.vGrid.offset) * zoom;
-    var y = options.topPadding * zoom;
-    var step = options.vGrid.step * zoom;
-    var gridLength = (options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset) * zoom;
+    var x = (options.leftPadding + options.vGrid.offset);
+    var y = options.topPadding;
+    var step = options.vGrid.step;
+    var gridLength = (options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset);
 
     var axisG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
@@ -98,75 +114,72 @@ function drawVGrid(options) {
         var gridLine = createLine(
             x + step * i, y, x + step * i,
             y + gridLength, 
-            options.vGrid.className);
+            options.vGrid.style.width,
+            options.vGrid.style.className);
         axisG.appendChild(gridLine);
     }
     return axisG;
 }
 
-function createRectLabel(x, y, width, height, title, className, fontSize) {
+function createRectLabel(x, y, width, height, title, style) {
     var labelG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    var labelRect = createRect(x, y, width, height, className);
-    var labelText = createText(title, x + width/2, y + height/2, null, className, fontSize);
+    var labelRect = createRect(x, y, width, height, style);
+    var labelText = createText(title, x + width/2, y + height/2, style);
     labelG.appendChild(labelRect);
     labelG.appendChild(labelText);
     return labelG;
 }
 
 function drawVAxisLabels(x, y, options) {
-    var zoom = options.zoom;
-    var step = options.vGrid.step * zoom;
-    var labelHeight = options.vGrid.labelHeight * zoom;
-
     var vAxisLabelsG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    for(i = 0; i < options.vGrid.labels.length; i++) {
+
+    for(i = 0; i < options.vGrid.dataLabels.labels.length; i++) {
         var rectLabel = createRectLabel(
-                x + step * i, 
+                x + options.vGrid.step * i, 
                 y, 
-                step, 
-                labelHeight, 
-                options.vGrid.labels[i], 
-                options.vGrid.labelClassName,
-                options.vGrid.labelFontSize * zoom,
-                'middle');
+                options.vGrid.step, 
+                options.vGrid.dataLabels.style.height,
+                options.vGrid.dataLabels.labels[i], 
+                options.vGrid.dataLabels.style);
         vAxisLabelsG.appendChild(rectLabel);
     }
     return vAxisLabelsG;
 }
 
 function drawGrid(options) {
-    var zoom = options.zoom;
     var gridG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
     hGridG = drawHGrid(options);
     var gridLine = createLine(
-        zoom * options.leftPadding,
-        zoom * (options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position), 
-        zoom * (options.leftPadding + options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset),
-        zoom * (options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position),
-        options.hAxis.className);
+        options.leftPadding,
+        options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position, 
+        options.leftPadding + options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset,
+        options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position,
+        options.hAxis.style.width,
+        options.hAxis.style.className);
     hGridG.appendChild(gridLine);
     gridG.appendChild(hGridG);
 
     vGridG = drawVGrid(options); 
     var gridLine = createLine(
-        zoom * (options.leftPadding + options.vGrid.step * options.vAxis.position),
-        zoom * options.topPadding, 
-        zoom * (options.leftPadding + options.vGrid.step * options.vAxis.position),
-        zoom * (options.topPadding + options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset), 
-        options.vAxis.className);
+        options.leftPadding + options.vGrid.step * options.vAxis.position,
+        options.topPadding, 
+        options.leftPadding + options.vGrid.step * options.vAxis.position,
+        options.topPadding + options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset, 
+        options.vAxis.style.width,
+        options.vAxis.style.className);
     vGridG.appendChild(gridLine);
     gridG.appendChild(vGridG);
 
     var vTopLabelsG = drawVAxisLabels(
-            options.leftPadding * zoom, 
-            (options.topPadding - options.vGrid.labelHeight) * zoom, 
-            options);
+        options.leftPadding, 
+        options.topPadding - options.vGrid.dataLabels.style.height, 
+        options);
     gridG.appendChild(vTopLabelsG);
-
+    
     var vBottomLabelsG = drawVAxisLabels(
-        options.leftPadding * zoom, 
-        (options.hGrid.step * (options.hGrid.count - 1) + options.topPadding) * zoom, 
+        options.leftPadding, 
+        options.hGrid.step * (options.hGrid.count - 1) + options.topPadding, 
         options);
     gridG.appendChild(vBottomLabelsG);
 
@@ -174,82 +187,136 @@ function drawGrid(options) {
 }
 
 function drawChart(chartDiv, data, options) {
+    var zoom = 4;
     if(!isValue(options)) {
         options = {
-            height: 600,
-            width: 650,
-            zoom: 4,
+            height: '100%',
+            width: '100%',
             topPadding: 60,
-            leftPadding: 20,
+            leftPadding: 20, // Подумать как расчитать от параметров вертикальной оси
             chartArea: {
-                className: 'rectChart',
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'rectChart'
+                }                
             },
             hAxis: {
-                className: 'axisLine',
                 position: 10,
-                labelSize: 1
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'axisLine'
+                }
             },
             vAxis: {
-                className: 'gridLine',
                 position: 0,
-                labelSize: 4
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'axisLine'
+                }
             },
             hGrid: {
-                className: 'gridLine',
-                width: 1,
                 step: 10,
                 count: 21,
                 offset: 0,
-                labelClassName: 'gridLabel',
-                labelFontSize: 5,
-                labelOffset: 15, // Подумать о замене на расчетный от leftPadding
-                labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
-                        '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100']
+                style: {
+                    width: 1,
+                    color: 'gray',
+                    className: 'gridLine'
+                },
+                dataLabels: {
+                    labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
+                    '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100'],
+                    style: {
+                        fontSize: 5,
+                        anchor: 'end',
+                        offset: 15, // Подумать о замене на расчетный от leftPadding
+                        className: ''
+                    }
+                }
             },
             vGrid: {
-                className: 'gridLine',
-                width: 1,
                 step: 30,
                 count: 10,
                 offset: 15,
-                labelHeight: 20,
-                labelClassName: 'rectLabel',
-                labelFontSize: 5,
-                labels: ['A','B','C','D','E','F','G','H','I', 'J']
+                style: {
+                    width: 1,
+                    color: 'gray',
+                    className: 'gridLine'
+                },
+                dataLabels: {
+                    labels: ['A','B','C','D','E','F','G','H','I', 'J'],
+                    style: {
+                        fontSize: 5,
+                        anchor: 'middle',
+                        offset: 0,
+                        height: 20,
+                        className: 'rectLabel'
+                    }
+                }
+            },
+            graph: {
+                line: {
+                    width: 3,
+                    color: "blue",
+                    className: ''
+                },
+                point: {
+                    radius: 10,
+                    color: 'red',
+                }
             }
         }
     }
+    
+    applyZoom(zoom, options);
 
-    var zoom = options.zoom;
-    chartWidth = options.vGrid.step * options.vGrid.count + options.leftPadding;
-    chartHeight = options.hGrid.step * options.hGrid.count + options.topPadding + options.vGrid.labelHeight;
+    chartWidth = options.vGrid.step * options.vGrid.count 
+            + options.leftPadding;
+    chartHeight = options.hGrid.step * options.hGrid.count 
+            + options.topPadding + options.vGrid.dataLabels.style.height;
 
     var chartSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
     setAttributeSVG(chartSVG,  'version', '1.1');
     setAttributeSVG(chartSVG,  'width', options.width);
     setAttributeSVG(chartSVG,  'height', options.height);
-    setAttributeSVG(chartSVG,  'viewBox', '0 0 ' + (chartWidth * zoom) + ' '  + (chartHeight * zoom));
+    setAttributeSVG(chartSVG,  'viewBox', '0 0 ' + chartWidth + ' '  + chartHeight);
 
     var mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    var mainRect = createRect(0, 0, '100%', '100%', options.chartArea.className);
+    var mainRect = createRect(0, 0, '100%', '100%', options.chartArea.style);
 
     mainG.appendChild(mainRect);
 
     mainG.appendChild(drawGrid(options));
 
+    var graphG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    var graphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    graphG.appendChild(graphPath);
+
     strPath ='M';
     for(let i = 0; i < data.length; i++) {
-        let x = ((i + options.vAxis.position) * options.vGrid.step + options.leftPadding + options.vGrid.offset) * options.zoom;
-        let y = ((options.hAxis.position * options.hGrid.step - data[i] * options.hGrid.step/(options.hGrid.count - options.hAxis.position - 1) + options.topPadding + options.hGrid.offset)) * options.zoom;
+        let x = ((i + options.vAxis.position) * options.vGrid.step + options.leftPadding + options.vGrid.offset);
+        let y = options.hAxis.position * options.hGrid.step 
+            - data[i] * options.hGrid.step/(options.hGrid.count - options.hAxis.position - 1) 
+            + options.topPadding + options.hGrid.offset;
         strPath = strPath + x + ' ' + y + ' ';
+        var graphPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        setAttributeSVG(graphPoint, 'cx', x);
+        setAttributeSVG(graphPoint, 'cy', y);
+        setAttributeSVG(graphPoint, 'r', options.graph.point.radius);
+        setAttributeSVG(graphPoint, 'fill', options.graph.point.color);
+        graphG.appendChild(graphPoint);
     }
 
-    var graphPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     setAttributeSVG(graphPath, 'd', strPath);
     setAttributeSVG(graphPath, 'fill-opacity', 0);
-    setAttributeSVG(graphPath, 'stroke', 'black');
-    mainG.appendChild(graphPath);
+    setAttributeSVG(graphPath, 'stroke', options.graph.line.color);
+    setAttributeSVG(graphPath, 'stroke-width', options.graph.line.width);
+    
+    mainG.appendChild(graphG);
 
     chartSVG.appendChild(mainG);
     chartDiv.appendChild(chartSVG);

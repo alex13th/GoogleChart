@@ -1,19 +1,20 @@
-div {
-    padding: 16px;
+div, ul {
+    padding: 0;
+    margin: 0;
 }
 
 .rectChart {
-    fill: whitesmoke;
+    fill: white;
 }
 
 .axisLine {
     stroke: #333;
-    stroke-width: 3px;
+    /* stroke-width: 3px; */
 }
 
 .gridLine {
-    stroke: #999;
-    stroke-width: 1px;
+    stroke: gray;
+    /* stroke-width: 1px; */
 }
 
 #groupAxisY .axisLine {
@@ -21,7 +22,7 @@ div {
 }
 
 .rectLabel {
-    stroke: #999;
+    stroke: #555;
     stroke-width: 1px;
     fill-opacity: 0;
 }

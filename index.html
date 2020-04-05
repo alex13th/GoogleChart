@@ -17,10 +17,22 @@
                 <label for="height">Высота: </label><input id="height" type="text" size="4" value="100%">
             </li>
             <li class="form-row">
-                <label for="height">Ширина столбца: </label><input id="gridWidth" type="text" size="4" value="40">
+                <label for="gridWidth">Ширина столбца: </label><input id="gridWidth" type="text" size="4" value="40">
             </li class="form-row">
             <li class="form-row">
-                <label for="height">Высота строки: </label><input id="gridHeight" type="text" size="4" value="10">
+                <label for="gridHeight">Высота строки: </label><input id="gridHeight" type="text" size="4" value="10">
+            </li>
+            <li class="form-row">
+                <label for="graphColor">Цвет графика: </label><input id="graphColor" type="text" size="4" value="navy">
+            </li>
+            <li class="form-row">
+                <label for="graphWidth">Толщина графика: </label><input id="graphWidth" type="text" size="4" value="4">
+            </li>
+            <li class="form-row">
+                <label for="pointColor">Цвет точек: </label><input id="pointColor" type="text" size="4" value="maroon">
+            </li>
+            <li class="form-row">
+                <label for="pointRadius">Размер точек: </label><input id="pointRadius" type="text" size="4" value="10">
             </li>
             <li class="form-row">
                 <label for="val1">Значения: </label>
@@ -42,58 +54,99 @@
     </div>
     <div id="divChart">
     </div>
-
     <script type="text/javascript">
 
-    options = {
-            height: 900,
-            width: 975,
-            zoom: 4,
+options = {
+            height: '100%',
+            width: '100%',
             topPadding: 60,
-            leftPadding: 20,
+            leftPadding: 20, // Подумать как расчитать от параметров вертикальной оси
             chartArea: {
-                className: 'rectChart',
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'rectChart'
+                }                
             },
             hAxis: {
-                className: 'axisLine',
                 position: 10,
-                labelSize: 1
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'axisLine'
+                }
             },
             vAxis: {
-                className: 'gridLine',
                 position: 0,
-                labelSize: 4
+                style: {
+                    width: 3,
+                    color: 'gray',
+                    className: 'axisLine'
+                }
             },
             hGrid: {
-                className: 'gridLine',
-                width: 1,
                 step: 10,
                 count: 21,
                 offset: 0,
-                labelClassName: 'gridLabel',
-                labelFontSize: 5,
-                labelOffset: 15, // Подумать о замене на расчетный от leftPadding
-                labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
-                        '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100']
+                style: {
+                    width: 1,
+                    color: 'gray',
+                    className: 'gridLine'
+                },
+                dataLabels: {
+                    labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
+                    '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100'],
+                    style: {
+                        fontSize: 5,
+                        anchor: 'end',
+                        offset: 15, // Подумать о замене на расчетный от leftPadding
+                        className: ''
+                    }
+                }
             },
             vGrid: {
-                className: 'gridLine',
-                width: 1,
                 step: 30,
                 count: 10,
                 offset: 15,
-                labelHeight: 20,
-                labelClassName: 'rectLabel',
-                labelFontSize: 5,
-                labels: ['A','B','C','D','E','F','G','H','I', 'J']
+                style: {
+                    width: 1,
+                    color: 'gray',
+                    className: 'gridLine'
+                },
+                dataLabels: {
+                    labels: ['A','B','C','D','E','F','G','H','I', 'J'],
+                    style: {
+                        fontSize: 5,
+                        anchor: 'middle',
+                        offset: 0,
+                        height: 20,
+                        className: 'rectLabel'
+                    }
+                }
+            },
+            graph: {
+                line: {
+                    width: 3,
+                    color: "blue",
+                    className: ''
+                },
+                point: {
+                    radius: 10,
+                    color: 'red',
+                }
             }
         }
+
         function drawGraph() {
             options.width = document.getElementById('width').value;
             options.height = document.getElementById('height').value;
             options.vGrid.step = +document.getElementById('gridWidth').value;
             options.hGrid.step = +document.getElementById('gridHeight').value;
             options.vGrid.offset = options.vGrid.step / 2;
+            options.graph.line.color = document.getElementById('graphColor').value;
+            options.graph.line.width = +document.getElementById('graphWidth').value;
+            options.graph.point.color = document.getElementById('pointColor').value;
+            options.graph.point.radius = +document.getElementById('pointRadius').value;
             var a = [];
             for(let i = 1; i <= 10; i++) {
                 a.push(+document.getElementById('val'+i).value);
