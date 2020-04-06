@@ -8,7 +8,7 @@
     <title>Document</title>
 </head>
 <body>
-    <div>
+    <div style="width: 300px">
         <ul class="wrapper">
             <li class="form-row">
                 <label for="width" style>Ширина: </label><input id="width" type="text" size="4" value="100%">
@@ -17,10 +17,10 @@
                 <label for="height">Высота: </label><input id="height" type="text" size="4" value="100%">
             </li>
             <li class="form-row">
-                <label for="gridWidth">Ширина столбца: </label><input id="gridWidth" type="text" size="4" value="40">
+                <label for="gridWidth">Ширина столбца: </label><input id="gridWidth" type="text" size="4" value="400">
             </li class="form-row">
             <li class="form-row">
-                <label for="gridHeight">Высота строки: </label><input id="gridHeight" type="text" size="4" value="10">
+                <label for="gridHeight">Высота строки: </label><input id="gridHeight" type="text" size="4" value="100">
             </li>
             <li class="form-row">
                 <label for="graphColor">Цвет графика: </label><input id="graphColor" type="text" size="4" value="navy">
@@ -34,7 +34,7 @@
             <li class="form-row">
                 <label for="pointRadius">Размер точек: </label><input id="pointRadius" type="text" size="4" value="10">
             </li>
-            <li class="form-row">
+            <li class="form-row" style="display: flex; flex-wrap: wrap;">
                 <label for="val1">Значения: </label>
                 <input id="val1" type="text" size="3" value="90">
                 <input id="val2" type="text" size="3" value="98">
@@ -59,12 +59,12 @@
 options = {
             height: '100%',
             width: '100%',
-            topPadding: 60,
-            leftPadding: 20, // Подумать как расчитать от параметров вертикальной оси
+            topPadding: 0,
+            leftPadding: 200, // Подумать как расчитать от параметров вертикальной оси
             chartArea: {
                 style: {
                     width: 3,
-                    color: 'gray',
+                    color: 'black',
                     className: 'rectChart'
                 }                
             },
@@ -88,6 +88,7 @@ options = {
                 step: 10,
                 count: 21,
                 offset: 0,
+                extend: 200,
                 style: {
                     width: 1,
                     color: 'gray',
@@ -97,9 +98,10 @@ options = {
                     labels: ['+100', '+90','+80','+70','+60','+50','+40','+30','+20','+10',
                     '0', '-10', '-20', '-30', '-40', '-50', '-60', '-70', '-80', '-90', '-100'],
                     style: {
-                        fontSize: 5,
+                        fontSize: 50,
+                        color: 'gray',
                         anchor: 'end',
-                        offset: 15, // Подумать о замене на расчетный от leftPadding
+                        offset: 150, // Подумать о замене на расчетный от leftPadding
                         className: ''
                     }
                 }
@@ -116,10 +118,11 @@ options = {
                 dataLabels: {
                     labels: ['A','B','C','D','E','F','G','H','I', 'J'],
                     style: {
-                        fontSize: 5,
+                        fontSize: 50,
+                        color: 'gray',
                         anchor: 'middle',
                         offset: 0,
-                        height: 20,
+                        height: 200,
                         className: 'rectLabel'
                     }
                 }

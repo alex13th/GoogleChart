@@ -1,5 +1,5 @@
 function isValue(value) {
-    return !(value == null || value === undefined)
+    return !(value == null || value === undefined || value === '')
 }
 
 function applyZoom(zoom, options) {
@@ -12,7 +12,7 @@ function applyZoom(zoom, options) {
     options.vGrid.step *= zoom;
     options.vGrid.offset *= zoom;
     options.vGrid.dataLabels.style.fontSize *= zoom;
-    options.vGrid.dataLabels.style.offset *= 0;
+    options.vGrid.dataLabels.style.offset *= zoom;
     options.vGrid.dataLabels.style.height *= zoom;
     return options;
 }
@@ -52,6 +52,7 @@ function createText(text, x, y, style) {
     setAttributeSVG(element, 'class', style.className);
     setAttributeSVG(element, 'x', x);
     setAttributeSVG(element, 'y', y);
+    setAttributeSVG(element, 'stroke', style.color);
     setAttributeSVG(element, 'text-anchor', style.anchor);
     setAttributeSVG(element, 'transform', transform);
     return element;
@@ -70,21 +71,27 @@ function createTSpan(text, x, y, dx, dy, style) {
 }
 
 function drawHGrid(options) {
-    var gridLength = (options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset);
+    var gridLength = options.vGrid.step * (options.vGrid.count - 1) 
+        + options.hGrid.extend
+        + options.vGrid.offset;
+    var x = options.topPadding 
+        + options.vGrid.dataLabels.style.height 
+        + options.hGrid.offset;
+    var y = options.leftPadding;
 
     var axisG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     var axisLabelText = createText(
             null, 
             options.leftPadding, 
-            options.topPadding + options.hGrid.offset - options.hGrid.step  + (options.hGrid.step * .1),
+            x - options.hGrid.step  + (options.hGrid.step * .1),
             options.hGrid.dataLabels.style);
     
     for(var i = 0; i < options.hGrid.count; i++) {
         var gridLine = createLine(
-            options.leftPadding, 
-            options.topPadding + options.hGrid.offset + options.hGrid.step * i, 
-            options.leftPadding + gridLength, 
-            options.topPadding + options.hGrid.offset + options.hGrid.step * i,
+            y, 
+            x + options.hGrid.step * i, 
+            y + gridLength, 
+            x + options.hGrid.step * i,
             options.hGrid.style.width,
             options.hGrid.style.className);
         axisG.appendChild(gridLine);
@@ -103,10 +110,10 @@ function drawHGrid(options) {
 }
 
 function drawVGrid(options) { 
-    var x = (options.leftPadding + options.vGrid.offset);
-    var y = options.topPadding;
+    var x = options.leftPadding + options.vGrid.offset;
+    var y = options.topPadding + options.vGrid.dataLabels.style.height;
     var step = options.vGrid.step;
-    var gridLength = (options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset);
+    var gridLength = options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset;
 
     var axisG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
@@ -147,14 +154,17 @@ function drawVAxisLabels(x, y, options) {
 }
 
 function drawGrid(options) {
+    var x = options.leftPadding;
+    var y = options.topPadding + options.vGrid.dataLabels.style.height + options.hGrid.offset;
+    
     var gridG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
     hGridG = drawHGrid(options);
     var gridLine = createLine(
-        options.leftPadding,
-        options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position, 
-        options.leftPadding + options.vGrid.step * (options.vGrid.count - 1) + options.vGrid.offset,
-        options.topPadding + options.hGrid.offset + options.hGrid.step * options.hAxis.position,
+        x,
+        y + options.hGrid.step * options.hAxis.position, 
+        x + options.vGrid.offset + options.hGrid.extend + options.vGrid.step * (options.vGrid.count - 1),
+        y + options.hGrid.step * options.hAxis.position,
         options.hAxis.style.width,
         options.hAxis.style.className);
     hGridG.appendChild(gridLine);
@@ -162,10 +172,10 @@ function drawGrid(options) {
 
     vGridG = drawVGrid(options); 
     var gridLine = createLine(
-        options.leftPadding + options.vGrid.step * options.vAxis.position,
-        options.topPadding, 
-        options.leftPadding + options.vGrid.step * options.vAxis.position,
-        options.topPadding + options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset, 
+        x + options.vGrid.step * options.vAxis.position,
+        y, 
+        x + options.vGrid.step * options.vAxis.position,
+        y + options.hGrid.step * (options.hGrid.count - 1) + options.hGrid.offset, 
         options.vAxis.style.width,
         options.vAxis.style.className);
     vGridG.appendChild(gridLine);
@@ -173,13 +183,13 @@ function drawGrid(options) {
 
     var vTopLabelsG = drawVAxisLabels(
         options.leftPadding, 
-        options.topPadding - options.vGrid.dataLabels.style.height, 
+        y - options.vGrid.dataLabels.style.height, 
         options);
     gridG.appendChild(vTopLabelsG);
     
     var vBottomLabelsG = drawVAxisLabels(
         options.leftPadding, 
-        options.hGrid.step * (options.hGrid.count - 1) + options.topPadding, 
+        y + options.hGrid.step * (options.hGrid.count - 1), 
         options);
     gridG.appendChild(vBottomLabelsG);
 
@@ -187,7 +197,7 @@ function drawGrid(options) {
 }
 
 function drawChart(chartDiv, data, options) {
-    var zoom = 4;
+    var zoom = 1;
     if(!isValue(options)) {
         options = {
             height: '100%',
@@ -275,8 +285,8 @@ function drawChart(chartDiv, data, options) {
 
     chartWidth = options.vGrid.step * options.vGrid.count 
             + options.leftPadding;
-    chartHeight = options.hGrid.step * options.hGrid.count 
-            + options.topPadding + options.vGrid.dataLabels.style.height;
+    chartHeight = options.hGrid.step * (options.hGrid.count -1) 
+            + options.topPadding + options.vGrid.dataLabels.style.height * 2;
 
     var chartSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
@@ -284,6 +294,8 @@ function drawChart(chartDiv, data, options) {
     setAttributeSVG(chartSVG,  'width', options.width);
     setAttributeSVG(chartSVG,  'height', options.height);
     setAttributeSVG(chartSVG,  'viewBox', '0 0 ' + chartWidth + ' '  + chartHeight);
+    setAttributeSVG(chartSVG,  'stroke', options.chartArea.style.color);
+    setAttributeSVG(chartSVG,  'stroke-width', options.chartArea.style.width);
 
     var mainG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     var mainRect = createRect(0, 0, '100%', '100%', options.chartArea.style);
@@ -301,7 +313,7 @@ function drawChart(chartDiv, data, options) {
         let x = ((i + options.vAxis.position) * options.vGrid.step + options.leftPadding + options.vGrid.offset);
         let y = options.hAxis.position * options.hGrid.step 
             - data[i] * options.hGrid.step/(options.hGrid.count - options.hAxis.position - 1) 
-            + options.topPadding + options.hGrid.offset;
+            + options.topPadding + options.vGrid.dataLabels.style.height + options.hGrid.offset;
         strPath = strPath + x + ' ' + y + ' ';
         var graphPoint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         setAttributeSVG(graphPoint, 'cx', x);

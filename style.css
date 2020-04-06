@@ -1,6 +1,14 @@
+body {
+    display: flex;
+}
 div, ul {
     padding: 0;
     margin: 0;
+}
+
+#divChart {
+    flex-grow: 1;
+    order: -1;
 }
 
 .rectChart {
